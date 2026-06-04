@@ -30,8 +30,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    //  copy password into our secure buffer
-    strcpy(secure_buffer, argv[1]);
+    //  copy password into our secure buffer (bounded write)
+    snprintf(secure_buffer, length + 1, "%s", argv[1]);
 
     //  Pin the memory page to physical RAM via VirtualLock so it doesnt slip to the pagefile.sys on disk
     printf("\n[LOCK] Securing memory page via VirtualLock()\n");
