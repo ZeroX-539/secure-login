@@ -34,9 +34,10 @@ jobs:
         queries: security-extended, security-and-quality
 
     # FORCE THE COMPILER TO RUN ON WINDOWS WITH YOUR WIN32 LIBRARIES
-    - name: Compile Windows Project
+   # GitHub's Windows runner comes with make/mingw32-make pre-installed
+    - name: Compile Windows Project using Makefile
       run: |
-        gcc custom_sanitizer.c -o custom_sanitizer.exe -lpsapi
+        mingw32-make custom_sanitizer
 
     # Performs the semantic analysis and uploads results to the Security tab
     - name: Perform CodeQL Analysis
