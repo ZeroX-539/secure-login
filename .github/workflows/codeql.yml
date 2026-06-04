@@ -20,26 +20,30 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'cpp' ] # CodeQL analyzes C and C++ under the 'cpp' flag
+        language: [ 'cpp' ]
     
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Initializes the CodeQL tools for scanning (Using updated v3/v4 pinned actions)
+    # Install NASM so the runner can assemble your clear_memory.asm file
+    - name: Install NASM
+      run: |
+        choco install nasm -y
+        echo "C:\Program Files\NASM" >> $env:GITHUB_PATH
+
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
         queries: security-extended, security-and-quality
 
-    # FORCE THE COMPILER TO RUN ON WINDOWS WITH YOUR WIN32 LIBRARIES
-   # GitHub's Windows runner comes with make/mingw32-make pre-installed
-    - name: Compile Windows Project using Makefile
+    # Build explicitly by linking both the object files directly 
+    - name: Compile Windows Project
       run: |
-        mingw32-make custom_sanitizer
+        nasm -f win64 clear_memory.asm -o clear_memory.o
+        gcc -g custom_sanitizer.c clear_memory.o -o custom_sanitizer.exe -lpsapi
 
-    # Performs the semantic analysis and uploads results to the Security tab
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:
