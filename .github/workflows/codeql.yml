@@ -1,0 +1,45 @@
+name: "CodeQL Advanced"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '24 8 * * 0'
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: windows-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'cpp' ] # CodeQL analyzes C and C++ under the 'cpp' flag
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Initializes the CodeQL tools for scanning (Using updated v3/v4 pinned actions)
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        queries: security-extended, security-and-quality
+
+    # FORCE THE COMPILER TO RUN ON WINDOWS WITH YOUR WIN32 LIBRARIES
+    - name: Compile Windows Project
+      run: |
+        gcc custom_sanitizer.c -o custom_sanitizer.exe -lpsapi
+
+    # Performs the semantic analysis and uploads results to the Security tab
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{ matrix.language }}"
